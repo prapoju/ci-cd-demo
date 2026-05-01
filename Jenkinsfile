@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 pipeline {
-    agent jenkins-jenkins-agent
+    agent any 
     stages {
         stage('Checkout') {
             steps {
