@@ -1,0 +1,72 @@
+#!/usr/bin/env groovy
+pipeline {
+    agent {
+      kubernetes {
+        defaultContainer 'docker'
+        yaml '''
+        apiVersion: v1
+        kind: Pod
+        spec:
+          containers:
+            - name: maven
+              image: maven:3.9.9-eclipse-temurin-11
+              command: ["sleep"]
+              args: ["infinity"]
+        
+            - name: docker
+              image: docker:24-dind
+              securityContext:
+                privileged: true
+              command: ["sleep"]
+              args: ["infinity"]
+        '''
+      }
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+              git 'https://github.com/prapoju/ci-cd-demo.git'
+            }
+        }
+
+        stage('Build & Test') {
+            steps {
+              container('maven'){
+              sh 'java --version'
+              sh 'which java'
+              sh 'mvn clean package' // Compila y ejecuta pruebas unitarias automáticamente
+            }
+          }
+        }
+
+        stage('Static Analysis') {
+            steps {
+                echo 'Running code quality analysis with SonarQube...'
+            }
+        }
+
+        stage('Security Scan') {
+            steps {
+                echo 'Scanning container image for vulnerabilities with Trivy...'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying application to the target environment...'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up the workspace...'
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Please check the logs for errors.'
+        }
+    }
+}
