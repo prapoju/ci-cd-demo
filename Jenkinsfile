@@ -1,17 +1,23 @@
 #!/usr/bin/env groovy
 pipeline {
-    agent any 
+    agent {
+      kubernetes {
+        yaml 'manifests/agent-pod.yaml'
+      }
+    }
     stages {
         stage('Checkout') {
             steps {
-                echo 'Cloning the repository...'
+              git 'https://github.com/prapoju/ci-cd-demo.git'
             }
         }
 
         stage('Build & Test') {
+          container('maven'){
             steps {
-                echo 'Compiling the project and running unit tests...'
+              sh 'mvn clean package' // Compila y ejecuta pruebas unitarias automáticamente
             }
+          }
         }
 
         stage('Static Analysis') {
