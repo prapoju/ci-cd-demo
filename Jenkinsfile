@@ -2,7 +2,8 @@
 pipeline {
     agent {
       kubernetes {
-        yaml 'manifests/agent-pod.yaml'
+        defaultContainer 'docker'
+        yamlFile 'manifests/agent-pod.yaml'
       }
     }
     stages {
@@ -13,8 +14,8 @@ pipeline {
         }
 
         stage('Build & Test') {
-          container('maven'){
             steps {
+              container('maven'){
               sh 'mvn clean package' // Compila y ejecuta pruebas unitarias automáticamente
             }
           }
