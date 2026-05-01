@@ -78,7 +78,6 @@
                 <configuration>
                  	<useSystemClassLoader>false</useSystemClassLoader>
                 </configuration>
-                <version>2.12</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.apache.maven.surefire</groupId>
