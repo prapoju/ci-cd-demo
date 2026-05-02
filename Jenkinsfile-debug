@@ -8,7 +8,7 @@ pipeline {
         kind: Pod
         spec:
           containers:
-            - name: maven
+            - name: maven-jdk-11
               image: maven:3.9.9-eclipse-temurin-11
               command: ["sleep"]
               args: ["infinity"]
@@ -19,6 +19,11 @@ pipeline {
                 privileged: true
               command: ["sleep"]
               args: ["infinity"]
+            - name: maven-jdk-21
+              image: maven:3.9.9-eclipse-temurin-21
+              command: ["sleep"]
+              args: ["infinity"]
+        
         '''
       }
     }
@@ -31,7 +36,7 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-              container('maven'){
+              container('maven-jdk-11'){
               sh 'java --version'
               sh 'which java'
               sh 'mvn clean package' // Compila y ejecuta pruebas unitarias automáticamente
@@ -39,10 +44,20 @@ pipeline {
           }
         }
 
-        stage('Static Analysis') {
-            steps {
-                echo 'Running code quality analysis with SonarQube...'
+        stage('Static Analysis (SonarQube)') {
+          steps {
+            echo 'Running code quality analysis with SonarQube...'
+            container('maven-jdk-21') {
+              withSonarQubeEnv('sonarqube-server') {
+                sh '''
+                  which java
+                  java --version
+                  mvn sonar:sonar \
+                    -Dsonar.projectKey=my-app
+                '''
+              }
             }
+          }
         }
 
         stage('Security Scan') {
