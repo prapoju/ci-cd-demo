@@ -14,7 +14,7 @@ public class ApiController {
     public EnvDetail home() throws UnknownHostException {
         EnvDetail env=new EnvDetail();
         InetAddress inetAddress = InetAddress.getLocalHost();
-        env.setHostname(inetAddress.getHostName()+"EDITADO");
+        env.setHostname(inetAddress.getHostName()+" EJEMPLOS EJEMPLOE EJEMPL");
         env.setIp(inetAddress.getHostAddress());
         env.setOs(System.getProperty("os.name"));
         return env;
