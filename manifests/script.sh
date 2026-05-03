@@ -21,12 +21,7 @@ kubectl get pv -n jenkins
 
 kubectl apply -f jenkins/jenkins-02-sa.yaml
 
-# Change nodeport, storageClass, service account false in the sa file
-# because the sa already exist
 
-# Define de chart
-# Create a release called jenkins in the name space jenkins that overrides the default conifg
-# using the jenkins-values.yaml and uses the chart
 
 chart=jenkinsci/jenkins
 helm install jenkins -n jenkins -f jenkins/jenkins-values.yaml $chart
@@ -62,16 +57,6 @@ kubectl get pods -n jenkins
 # get the password again if you can't sign in as admin
 kubectl -n jenkins port-forward jenkins-0 8080:8080
 
-# Or configure the ingress contoller https://docs.nginx.com/nginx-ingress-controller/install/helm/open-source/
-
-# kubectl apply -f ingress-nginx/ingress-namespace.yaml
-
-# helm install -n ingress-nginx nginx-ingress-controller oci://ghcr.io/nginx/charts/nginx-ingress --version 2.5.1
-
-# kubectl get ingressclasses
-# The class name is nginx. No you can apply the cofiguration
-# kubectl apply -f jenkins/jenkins-ingress.yaml
-
 
 
 # sonarqube
@@ -79,9 +64,6 @@ kubectl -n jenkins port-forward jenkins-0 8080:8080
 kubectl get nodes
 kubectl get pods -n jenkins -o wide
 
-# To enter in a pod run 
-# kubectl exec -n <namespace> --stdin --tty <pod>  -- /bin/bash
-# kubectl exec -n jenkins --stdin --tty jenkins-agent-debug -c maven-jdk-11 -- /bin/bash  
 
 # Choose a node name preferably not used by the jenkins pod. In my case it was ci-cd-demo-worker2
 #
@@ -89,7 +71,7 @@ kubectl get pods -n jenkins -o wide
 kubectl taint nodes ci-cd-demo-worker2 sonarqube=true:NoSchedule --overwrite
 
 kubectl label node ci-cd-demo-worker2 sonarqube=true
-# Rules in the values.yaml
+# Rules in already applied in the values.yaml
 # - sonarqube ignores the tail rule
 # - sonarqube uses nodes labeled as sonarqube
 # - monitoring passcode
@@ -139,12 +121,21 @@ kubectl port-forward svc/sonarqube-sonarqube 9000:9000 -n sonarqube
 # 2) Add quality gate condition. Add condition security hospots reviewed is less than 100
 # 3) Go to the project quality gate always use a specific quality gate and add it.
 
-
+# Create namespace
+
 # Apply the service yaml
 kubectl apply -f manifests/app/service.yml
 
 # Apply the deployment
 kubectl apply -f manifests/app/deployment.yml
+
+# Go to plugins and install kubernetes CLI
+# Add docker credentials Modify
+# add .kube/config file
+# make sure the server is 
+# server: https://kubernetes.default.svc
+# You can check the application with this command
+# kubectl port-forward svc/my-app-service 8081:8080 -n app
 
 
 

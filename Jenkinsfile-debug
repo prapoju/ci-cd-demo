@@ -34,9 +34,21 @@ pipeline {
                   value: tcp://localhost:2375
               command: ["sleep"]
               args: ["infinity"]
+            - name: kubectl
+              image: alpine/kubectl:1.36.0
+              command: ["cat"]
+              tty: true
         '''
       }
     }
+
+    environment {
+        REGISTRY   = 'docker.io'
+        IMAGE_REPO = 'prapoju/my-app'
+        IMAGE_TAG  = "${env.BUILD_NUMBER}"
+        FULL_IMAGE = "${REGISTRY}/${IMAGE_REPO}:${IMAGE_TAG}"
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -51,7 +63,7 @@ pipeline {
             }
           }
         }
-
+/*
         stage('Static Analysis (SonarQube)') {
           steps {
             echo 'Running code quality analysis with SonarQube...'
@@ -72,16 +84,27 @@ pipeline {
               }
             }
         }
+*/
+
         stage('Build Image') {
           steps {
             container('docker') {
-              sh '''
-                docker build -t my-app:latest .
-              '''
+              withCredentials([usernamePassword(
+                credentialsId: 'dockerhub-credentials',
+                usernameVariable: 'DOCKER_USER',
+                passwordVariable: 'DOCKER_PASS'
+              )]) {
+                sh '''
+                  docker build -t $FULL_IMAGE .
+                  echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                  docker push $FULL_IMAGE
+                '''
+              }
             }
           }
         }
-        /*stage('Security Scan') {
+        /*
+        stage('Security Scan') {
             steps {
               container('trivy') {
               sh '''
@@ -89,18 +112,26 @@ pipeline {
                '''
               }
             }
-        }*/
-
+        }
+*/
         stage('Deploy') {
             steps {
-                echo 'Deploying application to the target environment...'
+                container('kubectl') {
+                    withKubeConfig(credentialsId: 'kubeconfig') {
+                        sh '''
+                          sed "s|IMAGE_NAME|$FULL_IMAGE|g" manifests/app/deployment.yml | kubectl apply -f -
+                          kubectl apply -f manifests/app/service.yml
+                          kubectl rollout status deployment/my-app-deployment -n app 
+                        '''
+                    }
+                }
             }
         }
     }
 
     post {
         always {
-            echo 'Cleaning up the workspace...'
+            echo 'The workspace will be deleted. The pods are temporal.'
         }
         success {
             echo 'Pipeline completed successfully!'
