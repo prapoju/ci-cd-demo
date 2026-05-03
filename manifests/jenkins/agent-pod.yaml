@@ -1,15 +1,21 @@
 apiVersion: v1
 kind: Pod
+metadata: 
+  name: jenkins-agent-debug
+  namespace: jenkins
 spec:
   containers:
-    - name: maven
+    - name: maven-jdk-11
       image: maven:3.9.9-eclipse-temurin-11
       command: ["sleep"]
       args: ["infinity"]
-
     - name: docker
       image: docker:24-dind
       securityContext:
         privileged: true
+      command: ["sleep"]
+      args: ["infinity"]
+    - name: maven-jdk-21
+      image: maven:3.9.9-eclipse-temurin-21
       command: ["sleep"]
       args: ["infinity"]

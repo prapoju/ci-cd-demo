@@ -62,11 +62,26 @@ kubectl get pods -n jenkins
 # get the password again if you can't sign in as admin
 kubectl -n jenkins port-forward jenkins-0 8080:8080
 
+# Or configure the ingress contoller https://docs.nginx.com/nginx-ingress-controller/install/helm/open-source/
+
+# kubectl apply -f ingress-nginx/ingress-namespace.yaml
+
+# helm install -n ingress-nginx nginx-ingress-controller oci://ghcr.io/nginx/charts/nginx-ingress --version 2.5.1
+
+# kubectl get ingressclasses
+# The class name is nginx. No you can apply the cofiguration
+# kubectl apply -f jenkins/jenkins-ingress.yaml
+
+
+
 # sonarqube
 
 kubectl get nodes
 kubectl get pods -n jenkins -o wide
 
+# To enter in a pod run 
+# kubectl exec -n <namespace> --stdin --tty <pod>  -- /bin/bash
+# kubectl exec -n jenkins --stdin --tty jenkins-agent-debug -c maven-jdk-11 -- /bin/bash  
 
 # Choose a node name preferably not used by the jenkins pod. In my case it was ci-cd-demo-worker2
 #
@@ -94,8 +109,10 @@ helm upgrade --install \
 # Wait for 5 minutes
 kubectl get pods -n sonarqube -o wide
 
-# Get key
-kubectl port-forward svc/sonarqube-sonarqube 9008:9000 -n sonarqube
+# Get your token. By ingressing to the page. It is possible to use the ingress controller
+#
+
+kubectl port-forward svc/sonarqube-sonarqube 9000:9000 -n sonarqube
 
 # Generate your token
 # Example: sqa_94a2eea9c7d8524f352be0aa97c2f6633b466c0e
@@ -103,6 +120,31 @@ kubectl port-forward svc/sonarqube-sonarqube 9008:9000 -n sonarqube
 # Server URL http://sonarqube-sonarqube.sonarqube:9000
 # Add secret  text paste secret scope global
 #
+#
+# Configure the webhook
+# Install sonarqube quality gate plugin
+# 1) Create the web hook for the project cicd-demo. its key is my-app. If the project
+# doesn't exist run the pipeline and check again.
+# Read https://v1-32.docs.kubernetes.io/docs/concepts/services-networking/dns-pod-service/
+# https://www.jenkins.io/doc/pipeline/steps/sonar/
+# Project settings, webhooks create
+# Name: jenkins-agent
+# url: http://jenkins.jenkins.svc.cluster.local:8080/sonarqube-webhook/
+# kubectl exec -it sonarqube-sonarqube-0 -n sonarqube -- sh
+# Now add the quality gate configuration
+# Manage jenkins
+# Quality gate sonar qube
+# Sonaqube url http://sonarqube-sonarqube.sonarqube:9000
+# Token: The token that we used previously
+# 2) Add quality gate condition. Add condition security hospots reviewed is less than 100
+# 3) Go to the project quality gate always use a specific quality gate and add it.
+
+
+# Apply the service yaml
+kubectl apply -f manifests/app/service.yml
+
+# Apply the deployment
+kubectl apply -f manifests/app/deployment.yml
 
 
 

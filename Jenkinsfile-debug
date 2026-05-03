@@ -12,18 +12,28 @@ pipeline {
               image: maven:3.9.9-eclipse-temurin-11
               command: ["sleep"]
               args: ["infinity"]
-        
             - name: docker
               image: docker:24-dind
               securityContext:
                 privileged: true
-              command: ["sleep"]
-              args: ["infinity"]
+              env:
+                - name: DOCKER_TLS_CERTDIR
+                  value: ""
+              ports:
+                - containerPort: 2375
+              command: ["dockerd-entrypoint.sh"]
+              args: ["--host=tcp://0.0.0.0:2375","--host=unix:///var/run/docker.sock"]
             - name: maven-jdk-21
               image: maven:3.9.9-eclipse-temurin-21
               command: ["sleep"]
               args: ["infinity"]
-        
+            - name: trivy
+              image: aquasec/trivy:0.69.3
+              env:
+                - name: DOCKER_HOST
+                  value: tcp://localhost:2375
+              command: ["sleep"]
+              args: ["infinity"]
         '''
       }
     }
@@ -37,8 +47,6 @@ pipeline {
         stage('Build & Test') {
             steps {
               container('maven-jdk-11'){
-              sh 'java --version'
-              sh 'which java'
               sh 'mvn clean package' // Compila y ejecuta pruebas unitarias automáticamente
             }
           }
@@ -50,8 +58,6 @@ pipeline {
             container('maven-jdk-21') {
               withSonarQubeEnv('sonarqube-server') {
                 sh '''
-                  which java
-                  java --version
                   mvn sonar:sonar \
                     -Dsonar.projectKey=my-app
                 '''
@@ -59,12 +65,31 @@ pipeline {
             }
           }
         }
-
-        stage('Security Scan') {
+        stage("Quality Gate") {
             steps {
-                echo 'Scanning container image for vulnerabilities with Trivy...'
+              timeout(time: 5, unit: 'MINUTES') {
+                waitForQualityGate abortPipeline: true
+              }
             }
         }
+        stage('Build Image') {
+          steps {
+            container('docker') {
+              sh '''
+                docker build -t my-app:latest .
+              '''
+            }
+          }
+        }
+        /*stage('Security Scan') {
+            steps {
+              container('trivy') {
+              sh '''
+                  trivy image --severity CRITICAL --exit-code 1 my-app:latest
+               '''
+              }
+            }
+        }*/
 
         stage('Deploy') {
             steps {
