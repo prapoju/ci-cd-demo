@@ -1,5 +1,7 @@
 # Informe Entregable: Diseño y Construcción de Pipelines CI/CD
 
+> Material de referencia: [Taller de diseño y construcción de pipelines](../../docs/Ejerciciode%20dise%C3%B1o%20y%20construcci%C3%B3n%20de%20pipelines.pdf)
+
 ## Tabla de Contenidos
 
 1. [Preparación del Entorno e Infraestructura](#0-preparación-del-entorno-e-infraestructura)
