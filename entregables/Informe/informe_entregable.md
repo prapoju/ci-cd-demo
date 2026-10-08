@@ -108,13 +108,13 @@ Esta sección documenta la preparación del entorno: instalación de plugins en 
 
 El plugin **SonarQube Scanner** es el puente entre Jenkins y el servidor de análisis estático. Su instalación habilita la directiva `withSonarQubeEnv` en el `Jenkinsfile` y la recepción de los resultados del Quality Gate mediante webhook.
 
-![Lista de plugins de SonarQube instalados en Jenkins](./capturas/sonarqube-plugins.png)
+![Lista de plugins de SonarQube instalados en Jenkins](../capturas/sonarqube-plugins.png)
 
 *Figura 1. Pantalla de Jenkins donde se verifica que el plugin de SonarQube está instalado y habilitado.*
 
 El plugin **Kubernetes CLI** permite que el contenedor `kubectl` dentro del pod de agente autentique y ejecute comandos contra el clúster de Kubernetes usando el `kubeconfig` almacenado como credencial Jenkins.
 
-![Plugin Kubernetes CLI instalado en Jenkins](./capturas/kubernetes%20cliplugin.png)
+![Plugin Kubernetes CLI instalado en Jenkins](../capturas/kubernetes%20cliplugin.png)
 
 *Figura 2. Plugin Kubernetes CLI instalado, necesario para ejecutar `kubectl` desde el agente de Jenkins.*
 
@@ -122,11 +122,11 @@ El plugin **Kubernetes CLI** permite que el contenedor `kubectl` dentro del pod 
 
 Desde la interfaz de SonarQube se generó un token de usuario de tipo *Global Analysis Token*. Este token es el secreto que Jenkins usa para autenticar las peticiones `mvn sonar:sonar` sin exponer credenciales de usuario.
 
-![Formulario de generación de un token en SonarQube](./capturas/sonarqubegeneraciontoken.png)
+![Formulario de generación de un token en SonarQube](../capturas/sonarqubegeneraciontoken.png)
 
 *Figura 3. Formulario de SonarQube utilizado para crear el token de análisis.*
 
-![Token de SonarQube generado correctamente](./capturas/SonarQubeToken.png)
+![Token de SonarQube generado correctamente](../capturas/SonarQubeToken.png)
 
 *Figura 4. Confirmación de que el token fue generado. El valor del token no se expone en el informe.*
 
@@ -136,23 +136,23 @@ Las credenciales se almacenan en el *Credentials Store* de Jenkins como objetos 
 
 **Secret de SonarQube en Jenkins** — El token generado en el paso anterior se almacena aquí bajo el ID `sonarqube-token`, que es el que referencia la directiva `withSonarQubeEnv('sonarqube-server')` del Jenkinsfile.
 
-![Credencial Secret Text de SonarQube en Jenkins](./capturas/sonarqube%20secretjenkins.png)
+![Credencial Secret Text de SonarQube en Jenkins](../capturas/sonarqube%20secretjenkins.png)
 
 *Figura 5. Credencial de tipo Secret Text creada en Jenkins para guardar el token de SonarQube.*
 
 **Credenciales de Docker Hub** — Par usuario/contraseña para que el stage `Push Image` pueda hacer `docker login` y publicar la imagen sin escribir la contraseña en texto plano.
 
-![Credenciales del registro Docker configuradas en Jenkins](./capturas/RegistryDockerConfig.png)
+![Credenciales del registro Docker configuradas en Jenkins](../capturas/RegistryDockerConfig.png)
 
 *Figura 6. Credencial que utiliza Jenkins para autenticarse en Docker Hub antes de publicar la imagen.*
 
 **Archivo kubeconfig en Jenkins** — El fichero `kubeconfig` del clúster se carga como credencial de tipo *Secret File* con ID `kubeconfig`, permitiendo al contenedor `kubectl` autenticarse al clúster en el stage `Deploy`.
 
-![Carga del archivo kubeconfig como credencial de Jenkins](./capturas/kubectlconfigfilejenkins.png)
+![Carga del archivo kubeconfig como credencial de Jenkins](../capturas/kubectlconfigfilejenkins.png)
 
 *Figura 7. Carga del archivo kubeconfig como credencial de tipo Secret File.*
 
-![Credencial kubeconfig disponible en Jenkins](./capturas/kubectlconfigjenkins.png)
+![Credencial kubeconfig disponible en Jenkins](../capturas/kubectlconfigjenkins.png)
 
 *Figura 8. Configuración final de la credencial que permite a `kubectl` conectarse al clúster.*
 
@@ -160,7 +160,7 @@ Las credenciales se almacenan en el *Credentials Store* de Jenkins como objetos 
 
 El webhook notifica a Jenkins en tiempo real cuando SonarQube termina de computar el Quality Gate, permitiendo que `waitForQualityGate` no tenga que hacer *polling* activo. La URL apunta al endpoint interno `http://jenkins.jenkins.svc.cluster.local:8080/sonarqube-webhook/`.
 
-![Webhook de SonarQube configurado](./capturas/SonarQubeWebHook.png)
+![Webhook de SonarQube configurado](../capturas/SonarQubeWebHook.png)
 
 *Figura 9. Webhook configurado para enviar a Jenkins el resultado del Quality Gate.*
 
@@ -177,7 +177,7 @@ La captura muestra el Job configurado con:
 - **SCM:** Git apuntando a `https://github.com/prapoju/ci-cd-demo.git`
 - **Script Path:** `Jenkinsfile` (raíz del repositorio)
 
-![Job de Jenkins configurado como Pipeline script from SCM](./capturas/pipelinconfiguration.png)
+![Job de Jenkins configurado como Pipeline script from SCM](../capturas/pipelinconfiguration.png)
 
 *Figura 10. Configuración del job: repositorio Git, rama y ruta `Jenkinsfile`.*
 
@@ -185,7 +185,7 @@ La captura muestra el Job configurado con:
 
 El trigger **Poll SCM** con expresión cron `H/2 * * * *` hace que Jenkins consulte el repositorio cada dos minutos. Cuando detecta un nuevo commit, lanza automáticamente una ejecución del pipeline. El log de inicio `Started by an SCM change` confirma este comportamiento.
 
-![Trigger Poll SCM configurado en Jenkins](./capturas/POLLSCM.png)
+![Trigger Poll SCM configurado en Jenkins](../capturas/POLLSCM.png)
 
 *Figura 11. Trigger Poll SCM configurado con la expresión `H/2 * * * *`.*
 
@@ -217,7 +217,7 @@ El stage `Build & Test` ejecuta `mvn clean package` dentro del contenedor `maven
 
 La siguiente captura muestra una validación funcional inicial de la aplicación desplegada. No es una vista del pipeline: sirve como evidencia de que el servicio responde antes de aplicar los controles de calidad y seguridad:
 
-![Respuesta de la aplicación desplegada antes de aplicar los controles](./capturas/Antes_Exito.png)
+![Respuesta de la aplicación desplegada antes de aplicar los controles](../capturas/Antes_Exito.png)
 
 *Figura 12. Validación funcional inicial mediante `localhost:8081`; la aplicación responde con IP, hostname y sistema operativo del pod.*
 
@@ -227,7 +227,7 @@ El stage `Static Analysis (SonarQube)` ejecuta `mvn sonar:sonar` dentro del cont
 
 **Configuración del Quality Gate en SonarQube** — Define el umbral que el proyecto debe superar. El Quality Gate por defecto de SonarQube marca como *Failed* si hay nuevas vulnerabilidades, code smells críticos o cobertura insuficiente:
 
-![Condiciones configuradas para el Quality Gate de SonarQube](./capturas/SonarqubeQualityGateConfig.png)
+![Condiciones configuradas para el Quality Gate de SonarQube](../capturas/SonarqubeQualityGateConfig.png)
 
 *Figura 13. Condiciones del Quality Gate que determinan si el análisis puede continuar hacia las siguientes etapas.*
 
@@ -251,15 +251,15 @@ El flag `--severity CRITICAL` filtra únicamente vulnerabilidades de severidad c
 
 **Reporte de vulnerabilidades CRITICAL detectadas por Trivy:**
 
-![Trivy reporta vulnerabilidades críticas en la imagen](./capturas/TrivyFailure.png)
+![Trivy reporta vulnerabilidades críticas en la imagen](../capturas/TrivyFailure.png)
 
 *Figura 14. Resultado del escaneo de la imagen Docker con vulnerabilidades de severidad crítica.*
 
-![Detalle de vulnerabilidades críticas encontradas por Trivy](./capturas/TrivyFailure2.png)
+![Detalle de vulnerabilidades críticas encontradas por Trivy](../capturas/TrivyFailure2.png)
 
 *Figura 15. Detalle de los paquetes afectados y de los identificadores CVE informados por Trivy.*
 
-![Resumen del escaneo fallido de Trivy](./capturas/TrivyFailure3.png)
+![Resumen del escaneo fallido de Trivy](../capturas/TrivyFailure3.png)
 
 *Figura 16. Resumen del escaneo que justifica el bloqueo de la imagen cuando se utiliza `--exit-code 1`.*
 
@@ -275,13 +275,13 @@ Cuando el análisis estático detecta vulnerabilidades o code smells que violan 
 
 La siguiente captura muestra el resultado en SonarQube con el Quality Gate en estado **Failed**:
 
-![Quality Gate de SonarQube en estado Failed](./capturas/SonarqubeQualityGateFailure.png)
+![Quality Gate de SonarQube en estado Failed](../capturas/SonarqubeQualityGateFailure.png)
 
 *Figura 17. SonarQube marca el análisis como `Failed`, por lo que el pipeline no debe avanzar.*
 
 La siguiente captura muestra el efecto en Jenkins: el pipeline se marca como **ABORTED/FAILED** en el stage `Quality Gate`, impidiendo que se construya o publique la imagen Docker:
 
-![Jenkins detiene el pipeline por un Quality Gate fallido](./capturas/FailureJenkinsQualityGate.png)
+![Jenkins detiene el pipeline por un Quality Gate fallido](../capturas/FailureJenkinsQualityGate.png)
 
 *Figura 18. Jenkins refleja el fallo en la etapa `Quality Gate` y evita publicar o desplegar la imagen.*
 
@@ -311,19 +311,19 @@ Este mecanismo garantiza que ninguna imagen con vulnerabilidades críticas conoc
 
 Una vez resueltas las vulnerabilidades y satisfecho el Quality Gate de SonarQube, se valida el resultado en Jenkins y en la aplicación desplegada. Las siguientes capturas no representan la misma pantalla: cada una aporta una evidencia diferente del flujo exitoso.
 
-![Job de Jenkins con Quality Gate aprobado](./capturas/PIPELINE_EXITO1.png)
+![Job de Jenkins con Quality Gate aprobado](../capturas/PIPELINE_EXITO1.png)
 
 *Figura 19. Jenkins muestra el job `pipeline_final` con el Quality Gate de SonarQube en estado `Passed`.*
 
-![Aplicación respondiendo después del despliegue](./capturas/PIPELINEXITO2.png)
+![Aplicación respondiendo después del despliegue](../capturas/PIPELINEXITO2.png)
 
 *Figura 20. Validación del despliegue mediante una petición a `localhost:8081`; la respuesta proviene de un pod de la aplicación.*
 
-![Etapas del pipeline completadas correctamente](./capturas/pipelineExito3.png)
+![Etapas del pipeline completadas correctamente](../capturas/pipelineExito3.png)
 
 *Figura 21. Vista `Pipeline Steps` de Jenkins con las etapas ejecutadas y sus estados exitosos.*
 
-![Commit detectado por Jenkins y builds exitosos](./capturas/pipeline_exito2.png)
+![Commit detectado por Jenkins y builds exitosos](../capturas/pipeline_exito2.png)
 
 *Figura 22. Historial de cambios del job: Jenkins detecta el commit y registra las ejecuciones exitosas.*
 
@@ -331,7 +331,7 @@ Una vez resueltas las vulnerabilidades y satisfecho el Quality Gate de SonarQube
 
 La siguiente captura documenta el cambio de código y el commit que se envió al repositorio. El resultado del pipeline se verifica en las capturas anteriores; esta imagen solo muestra el cambio que lo desencadenó:
 
-![Cambio de código y publicación del commit](./capturas/Cambio_Exito.png)
+![Cambio de código y publicación del commit](../capturas/Cambio_Exito.png)
 
 *Figura 23. Cambio realizado en el controlador de la aplicación y posterior publicación del commit en Git. Esta captura documenta el cambio de código, no el resultado completo del pipeline.*
 
